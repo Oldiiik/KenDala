@@ -59,7 +59,10 @@ export const NatureMagicOverlay = ({ season }: NatureMagicOverlayProps) => {
       <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-amber-900/10 mix-blend-color-dodge" />
         
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay" />
+        <div
+          className="absolute inset-0 opacity-10 mix-blend-overlay"
+          style={{ backgroundImage: 'repeating-radial-gradient(circle at 0 0, transparent 0, rgba(255,255,255,0.7) 1px, transparent 2px, transparent 5px)' }}
+        />
         
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(66,32,6,0.2)_100%)]" />
       </div>

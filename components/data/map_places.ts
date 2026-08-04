@@ -469,7 +469,7 @@ export const PLACES: Place[] = [
       ru: 'Пять озер среди гранитных гор.', 
       en: 'Five lakes among granite mountains.' 
     }, 
-    image: 'https://images.unsplash.com/photo-1596711684348-73238612185d?q=80&w=1080' 
+    image: 'https://images.unsplash.com/photo-1642693373768-0b86505bd7c8?q=80&w=1080'
   },
   { 
     id: '39', 
@@ -565,7 +565,7 @@ export const PLACES: Place[] = [
       ru: 'Оазис гор и сосновых лесов.', 
       en: 'Oasis of mountains and pine forests.' 
     }, 
-    image: 'https://images.unsplash.com/photo-1531258459463-780d6b677a29?q=80&w=1080' 
+    image: 'https://images.unsplash.com/photo-1637842729600-d256c8960194?q=80&w=1080'
   },
   { 
     id: '47', 
@@ -613,7 +613,7 @@ export const PLACES: Place[] = [
       ru: 'Легендарная скала в Боровом.', 
       en: 'Legendary rock in Burabay.' 
     }, 
-    image: 'https://images.unsplash.com/photo-1698656627581-6453000dfd07?q=80&w=1080' 
+    image: 'https://images.unsplash.com/photo-1752584157449-a3c95f6b7b2d?q=80&w=1080'
   },
   { 
     id: '51', 
@@ -637,7 +637,7 @@ export const PLACES: Place[] = [
       ru: 'Мавзолей, посвященный одной из святых матерей.', 
       en: 'Mausoleum dedicated to one of the holy mothers.' 
     }, 
-    image: 'https://images.unsplash.com/photo-1605634563897-4252e1e0734e?q=80&w=1080' 
+    image: 'https://images.unsplash.com/photo-1605354180969-0f3fc29665bf?q=80&w=1080'
   },
   { 
     id: '53', 

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { buildImageUrl } from '../../utils/imageUrls';
 
 interface ResponsiveImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {

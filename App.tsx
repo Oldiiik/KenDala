@@ -8,6 +8,7 @@ import { VerticalSidebar } from './components/navigation/VerticalSidebar';
 import { SeasonSelection } from './components/pages/SeasonSelection';
 import { LanguageSelection } from './components/LanguageSelection';
 import { GlobalPreloader } from './components/ui/GlobalPreloader';
+import { AppErrorBoundary } from './components/ui/AppErrorBoundary';
 import { HomePage } from './components/pages/HomePage';
 import { PlacesPage } from './components/pages/PlacesPage';
 import { ToursPage } from './components/pages/ToursPage';
@@ -60,6 +61,9 @@ function AppContent() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setAuthChecked(true);
+      if (_event === 'PASSWORD_RECOVERY') {
+        setCurrentPage('auth');
+      }
       if (session?.user && _event === 'SIGNED_IN') {
         loadUserPreferences(session.access_token);
       }
@@ -254,7 +258,9 @@ export default function App() {
         <SeasonProvider>
           <NotificationProvider>
             <TripProvider>
-              <AppContent />
+              <AppErrorBoundary>
+                <AppContent />
+              </AppErrorBoundary>
             </TripProvider>
           </NotificationProvider>
         </SeasonProvider>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import { supabase } from '../../utils/supabase/client';
 import { motion, AnimatePresence } from 'motion/react';
@@ -13,7 +13,11 @@ interface AuthTerminalProps {
 export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
     const { theme } = useSeason();
     const { language } = useLanguage();
-    const [mode, setMode] = useState<'login' | 'signup'>('login');
+    const [mode, setMode] = useState<'login' | 'signup' | 'recovery'>(() =>
+        window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery')
+            ? 'recovery'
+            : 'login'
+    );
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -21,6 +25,19 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+
+    useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                setMode('recovery');
+                setError(null);
+                setSuccessMsg(null);
+                setPassword('');
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     const labels = {
         kz: { signin: 'Кіру', join: 'Тіркелу', name: 'Толық аты-жөні', email: 'Электронды пошта', pass: 'Құпия сөз', forgot: 'Ұмыттыңыз ба?', enter: 'Далаға қадам басу', account: 'Тіркелгі жасау', welcome: 'Кендалаға қош келдіңіз.' },
@@ -44,11 +61,71 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
         }
     };
 
+    const handleModeChange = (nextMode: 'login' | 'signup') => {
+        setMode(nextMode);
+        setError(null);
+        setSuccessMsg(null);
+        setPassword('');
+    };
+
+    const handleForgotPassword = async () => {
+        setError(null);
+        setSuccessMsg(null);
+
+        if (!email.trim()) {
+            setError('Enter your email address first.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                redirectTo: `${window.location.origin}/?type=recovery`,
+            });
+            if (resetError) throw resetError;
+            setSuccessMsg('Password reset instructions have been sent to your email.');
+        } catch (err: any) {
+            setError(err.message || 'Unable to send password reset instructions.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRecovery = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setSuccessMsg(null);
+
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { error: updateError } = await supabase.auth.updateUser({ password });
+            if (updateError) throw updateError;
+            setSuccessMsg('Password updated successfully.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setTimeout(onAuthSuccess, 700);
+        } catch (err: any) {
+            setError(err.message || 'Unable to update your password.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
         setSuccessMsg(null);
+
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters.');
+            setLoading(false);
+            return;
+        }
 
         try {
             const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-3ab99f71/signup`, {
@@ -82,7 +159,7 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
             <div className="mb-4 md:mb-8">
                 <div className="flex gap-6 md:gap-8 mb-4 md:mb-8 border-b" style={{ borderColor: `${theme.text}10` }}>
                     <button 
-                        onClick={() => setMode('login')}
+                        onClick={() => handleModeChange('login')}
                         className={`pb-3 md:pb-4 text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-bold transition-all relative ${mode === 'login' ? 'opacity-100' : 'opacity-30 hover:opacity-60'}`}
                         style={{ color: theme.text }}
                     >
@@ -90,7 +167,7 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
                         {mode === 'login' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: theme.text }} />}
                     </button>
                     <button 
-                        onClick={() => setMode('signup')}
+                        onClick={() => handleModeChange('signup')}
                         className={`pb-3 md:pb-4 text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em] font-bold transition-all relative ${mode === 'signup' ? 'opacity-100' : 'opacity-30 hover:opacity-60'}`}
                         style={{ color: theme.text }}
                     >
@@ -98,9 +175,14 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
                         {mode === 'signup' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: theme.text }} />}
                     </button>
                 </div>
+                {mode === 'recovery' && (
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-60" style={{ color: theme.text }}>
+                        Choose a new password for your account.
+                    </p>
+                )}
             </div>
 
-            <form onSubmit={mode === 'login' ? handleLogin : handleSignup} className="space-y-5 md:space-y-8">
+            <form onSubmit={mode === 'login' ? handleLogin : mode === 'signup' ? handleSignup : handleRecovery} className="space-y-5 md:space-y-8">
                 <AnimatePresence mode="popLayout">
                     {mode === 'signup' && (
                         <motion.div 
@@ -118,6 +200,7 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
                                     className="bg-transparent w-full py-3 outline-none font-sans placeholder-black/10"
                                     style={{ color: theme.text }}
                                     placeholder="..."
+                                    autoComplete="name"
                                     required
                                 />
                             </div>
@@ -125,26 +208,29 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
                     )}
                 </AnimatePresence>
 
-                <div className="space-y-2">
-                    <label className="block text-[9px] uppercase tracking-widest font-bold opacity-30" style={{ color: theme.text }}>{labels.email}</label>
-                    <div className="relative group border-b transition-colors" style={{ borderColor: `${theme.text}20` }}>
-                        <input 
-                            type="email" 
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="bg-transparent w-full py-3 outline-none font-sans placeholder-black/10"
-                            style={{ color: theme.text }}
-                            placeholder="nomad@kendala.kz"
-                            required
-                        />
+                {mode !== 'recovery' && (
+                    <div className="space-y-2">
+                        <label className="block text-[9px] uppercase tracking-widest font-bold opacity-30" style={{ color: theme.text }}>{labels.email}</label>
+                        <div className="relative group border-b transition-colors" style={{ borderColor: `${theme.text}20` }}>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="bg-transparent w-full py-3 outline-none font-sans placeholder-black/10"
+                                style={{ color: theme.text }}
+                                placeholder="nomad@kendala.kz"
+                                autoComplete="email"
+                                required
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <label className="block text-[9px] uppercase tracking-widest font-bold opacity-30" style={{ color: theme.text }}>{labels.pass}</label>
                         {mode === 'login' && (
-                            <button type="button" className="text-[9px] uppercase tracking-widest font-bold opacity-20 hover:opacity-100 transition-colors" style={{ color: theme.text }}>
+                            <button type="button" onClick={handleForgotPassword} disabled={loading} className="text-[9px] uppercase tracking-widest font-bold opacity-40 hover:opacity-100 disabled:opacity-20 transition-colors" style={{ color: theme.text }}>
                                 {labels.forgot}
                             </button>
                         )}
@@ -157,6 +243,8 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
                             className="bg-transparent w-full py-3 outline-none font-sans placeholder-black/10"
                             style={{ color: theme.text }}
                             placeholder="••••••••"
+                            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                            minLength={mode === 'login' ? undefined : 8}
                             required
                         />
                     </div>
@@ -180,7 +268,7 @@ export const AuthTerminal = ({ onAuthSuccess }: AuthTerminalProps) => {
                     style={{ backgroundColor: theme.text, color: theme.background }}
                 >
                     <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] md:tracking-[0.4em]">
-                        {loading ? '...' : (mode === 'login' ? labels.enter : labels.account)}
+                        {loading ? '...' : (mode === 'login' ? labels.enter : mode === 'signup' ? labels.account : 'Update Password')}
                     </span>
                     {!loading && <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />}
                 </button>

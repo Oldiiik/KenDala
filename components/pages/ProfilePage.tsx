@@ -5,7 +5,7 @@ import { supabase } from '../../utils/supabase/client';
 import { useSeason } from '../../contexts/SeasonContext';
 import { useLanguage, Language } from '../../contexts/LanguageContext';
 import { PageTransition } from '../ui/PageTransition';
-import { hq } from '../../utils/imageUrls';
+import { hq, HOME_FEATURE_URLS } from '../../utils/imageUrls';
 import { 
     User as UserIcon, 
     Map as MapIcon, 
@@ -283,7 +283,7 @@ export const ProfilePage = ({ onNavigate }: ProfilePageProps) => {
                             className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity w-full hover:translate-x-1 duration-300"
                          >
                             <LogOut className="w-4 h-4" />
-                            {t('back_to_main') || 'Sign Out'}
+                            {t('sign_out') || 'Sign Out'}
                          </button>
                     </div>
                 </aside>
@@ -418,7 +418,7 @@ export const ProfilePage = ({ onNavigate }: ProfilePageProps) => {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="aspect-square relative group overflow-hidden cursor-pointer border border-transparent hover:border-current transition-all">
                                                     <ResponsiveImage 
-                                                        src="https://images.unsplash.com/photo-1540206395-688085723adb"
+                                                        src={HOME_FEATURE_URLS.places}
                                                         alt="Memory 1"
                                                         className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700"
                                                     />
