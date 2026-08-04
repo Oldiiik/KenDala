@@ -299,7 +299,7 @@ const MapInner = ({ onNavigate }: { onNavigate?: (page: string) => void }) => {
                         gmpClickable: true,
                     });
 
-                    marker.addListener('click', () => {
+                    marker.addEventListener('gmp-click', () => {
                         setSelectedPlace(place);
                     });
 

@@ -121,7 +121,10 @@ export const GlobalPreloader = ({ onComplete }: GlobalPreloaderProps) => {
             style={{ backgroundColor: deepGreen }}
         >
             {/* Subtle organic texture/noise */}
-            <div className="absolute inset-0 opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{ backgroundImage: 'repeating-radial-gradient(circle at 0 0, transparent 0, rgba(255,255,255,0.7) 1px, transparent 2px, transparent 5px)' }}
+            />
         </motion.div>
 
         <motion.div
@@ -131,7 +134,10 @@ export const GlobalPreloader = ({ onComplete }: GlobalPreloaderProps) => {
             className="absolute bottom-0 left-0 right-0 h-[50vh] z-10 border-t border-white/5"
             style={{ backgroundColor: deepGreen }}
         >
-             <div className="absolute inset-0 opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+             <div
+               className="absolute inset-0 opacity-10"
+               style={{ backgroundImage: 'repeating-radial-gradient(circle at 0 0, transparent 0, rgba(255,255,255,0.7) 1px, transparent 2px, transparent 5px)' }}
+             />
         </motion.div>
 
         {/* Content Wrapper */}

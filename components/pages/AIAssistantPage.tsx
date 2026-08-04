@@ -24,6 +24,54 @@ const SafeMarkdown = ({ children, components }: { children: string; components?:
   return <ReactMarkdown components={components}>{children}</ReactMarkdown>;
 };
 
+const readAiReply = async (response: Response): Promise<string> => {
+  const raw = await response.text();
+
+  if (!response.ok) {
+    let message = `Server returned ${response.status}`;
+    try {
+      const parsed = JSON.parse(raw);
+      message = parsed.error || parsed.message || message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  const collectReply = (payload: any): string => {
+    if (typeof payload?.reply === 'string') return payload.reply;
+    if (typeof payload?.error === 'string') throw new Error(payload.error);
+    return (payload?.candidates || [])
+      .flatMap((candidate: any) => candidate?.content?.parts || [])
+      .map((part: any) => typeof part?.text === 'string' ? part.text : '')
+      .join('');
+  };
+
+  if (raw.trimStart().startsWith('data:') || response.headers.get('content-type')?.includes('text/event-stream')) {
+    let streamedReply = '';
+    for (const line of raw.split(/\r?\n/)) {
+      if (!line.startsWith('data:')) continue;
+      const value = line.slice(5).trim();
+      if (!value || value === '[DONE]') continue;
+      try {
+        streamedReply += collectReply(JSON.parse(value));
+      } catch (error) {
+        if (error instanceof SyntaxError) continue;
+        throw error;
+      }
+    }
+    if (streamedReply) return streamedReply;
+  }
+
+  try {
+    const parsedReply = collectReply(JSON.parse(raw));
+    if (parsedReply) return parsedReply;
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+  }
+
+  if (raw.trim()) return raw.trim();
+  throw new Error('The AI service returned an empty response.');
+};
+
 interface Message {
   id: string;
   text: string;
@@ -372,10 +420,10 @@ export const AIAssistantPage = ({ onNavigate }: { onNavigate?: (page: string) =>
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${publicAnonKey}`, 'x-user-token': token },
             body: JSON.stringify({ message: text + ` (Tone: Laconic, strict, concise. Max 2 sentences unless listing. Focus on Kazakhstan. Language: ${language}. Season: ${season})` })
         });
-        const data = await response.json();
-        setMessages(prev => [...prev, { id: crypto.randomUUID(), text: data.reply || "Connection lost.", sender: 'ai', timestamp: new Date() }]);
-    } catch (e) {
-        setMessages(prev => [...prev, { id: crypto.randomUUID(), text: "Error syncing.", sender: 'ai', timestamp: new Date() }]);
+        const reply = await readAiReply(response);
+        setMessages(prev => [...prev, { id: crypto.randomUUID(), text: reply, sender: 'ai', timestamp: new Date() }]);
+    } catch (e: any) {
+        setMessages(prev => [...prev, { id: crypto.randomUUID(), text: e?.message || "Unable to reach the AI guide. Please try again.", sender: 'ai', timestamp: new Date() }]);
     } finally {
         setIsTyping(false);
     }
@@ -405,20 +453,8 @@ export const AIAssistantPage = ({ onNavigate }: { onNavigate?: (page: string) =>
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${publicAnonKey}`, 'x-user-token': token },
             body: JSON.stringify({ message: fullPrompt + instructions })
         });
-        if (!response.ok) {
-            console.error('Tool API error:', response.status);
-            setToolResult(`Error: Server returned ${response.status}`);
-            setIsToolLoading(false);
-            return;
-        }
-        const data = await response.json();
-        if (data.error) {
-            console.error('Tool API returned error:', data.error);
-            setToolResult(`Error: ${data.error}`);
-            setIsToolLoading(false);
-            return;
-        }
-        setToolResult(data.reply || 'No response generated.');
+        const reply = await readAiReply(response);
+        setToolResult(reply);
     } catch (e: any) {
         console.error('Tool execution error:', e);
         setToolResult('Connection error. Please try again.');

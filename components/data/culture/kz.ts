@@ -10,14 +10,6 @@ import sazsyrnayImg from 'figma:asset/1c189c500fb7b696d9890eae2ac31da3e3e23387.p
 import shankobyzImg from 'figma:asset/a9659c7629338bfa7bce2f51da9e89e9456265c2.png';
 import dauylpazImg from 'figma:asset/cf5748dbae1f2a03dabe15b2ca75ca5db5d7e95c.png';
 import adyrnaImg from 'figma:asset/e395541ff2719ddb07c2e2ab138344d95aa10b41.png';
-import dombraImg from 'figma:asset/2a1a999b8dd927b5e4403bc5a228394d597ffe73.png';
-import kobyzImg from 'figma:asset/7f87844e544184dd0fb72fd13610100980ea82e3.png';
-import zhetigenImg from 'figma:asset/80d9e2a6cdf51e612abec873620d5e03d4b62b5f.png';
-import sherterImg from 'figma:asset/44c0d112942298f0c828352cf7b2cc2862d69e6b.png';
-import sazsyrnayImg from 'figma:asset/1c189c500fb7b696d9890eae2ac31da3e3e23387.png';
-import shankobyzImg from 'figma:asset/a9659c7629338bfa7bce2f51da9e89e9456265c2.png';
-import dauylpazImg from 'figma:asset/cf5748dbae1f2a03dabe15b2ca75ca5db5d7e95c.png';
-import adyrnaImg from 'figma:asset/e395541ff2719ddb07c2e2ab138344d95aa10b41.png';
 
 export const kz = {
     title: 'ҰЛЫ ДАЛА МҰРАСЫ',
